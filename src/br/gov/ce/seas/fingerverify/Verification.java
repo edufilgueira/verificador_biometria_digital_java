@@ -1,0 +1,403 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package br.gov.ce.seas.fingerverify;
+
+import br.gov.ce.seas.util.Utilidade;
+import br.gov.ce.seas.fingerprint.framework.dao.Conexao;
+import br.gov.ce.seas.fingerprint.modelo.dao.ColaboradorDao;
+import br.gov.ce.seas.fingerprint.modelo.dao.PontoDao;
+import br.gov.ce.seas.http.ServicoHttp;
+import br.gov.ce.seas.util.Ini;
+import com.digitalpersona.onetouch.DPFPDataPurpose;
+import com.digitalpersona.onetouch.DPFPFeatureSet;
+import com.digitalpersona.onetouch.DPFPGlobal;
+import com.digitalpersona.onetouch.DPFPSample;
+import com.digitalpersona.onetouch.DPFPTemplate;
+import com.digitalpersona.onetouch.capture.DPFPCapture;
+import com.digitalpersona.onetouch.capture.event.DPFPDataAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPDataEvent;
+import com.digitalpersona.onetouch.processing.DPFPFeatureExtraction;
+import com.digitalpersona.onetouch.verification.DPFPVerification;
+import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Image;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.ImageIcon;
+import javax.swing.Timer;
+
+/**
+ *
+ * @author New Tech
+ */
+public class Verification extends javax.swing.JFrame {
+
+    
+    private Ajuda frame = new Ajuda();
+    /**
+     * Creates new form Verification
+     */
+    public Verification() throws Exception{
+        this.setLocationRelativeTo(null);
+        getContentPane().setBackground(Color.black);
+        initComponents(); 
+        statusAguardandoDigital();
+        ocultarPonteiroMouse();
+
+        relogio();
+
+        // Função escuta as ações do teclado
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+            .addKeyEventDispatcher(new KeyEventDispatcher() {
+                @Override
+                public boolean dispatchKeyEvent(KeyEvent event) {
+                    if(event.getID() == KeyEvent.KEY_RELEASED 
+                       && event.getKeyCode() == KeyEvent.VK_ESCAPE){
+                            sair();
+                            return true;
+                    }
+                    if(event.getID() == KeyEvent.KEY_RELEASED 
+                       && event.getKeyCode() == KeyEvent.VK_F1){
+                            
+                            frame.setVisible(true);
+                            return true;
+                    }
+                    if(event.getID() == KeyEvent.KEY_RELEASED 
+                       && event.getKeyCode() == KeyEvent.VK_F2){
+                            frame.setVisible(false);
+                            return true;
+                    }
+                    if(event.getID() == KeyEvent.KEY_RELEASED 
+                       && event.getKeyCode() == KeyEvent.VK_F10){
+                        try {
+                            
+                            frame.setVisible(false);
+                            ServicoHttp.sincronizarDados();
+                            
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Verification.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(Verification.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (Exception ex) {
+                            Logger.getLogger(Verification.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        return true;
+                    }
+                    if(event.getID() == KeyEvent.KEY_RELEASED 
+                       && event.getKeyCode() == KeyEvent.VK_F12){
+                        try {
+                            frame.setVisible(false);
+                            statusDesligandoPc();
+                            jnome.setText("Aguarde enquanto desliga ..."); 
+                            desligarSo();
+                        } catch (IOException ex) {
+                            Logger.getLogger(Verification.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+        });
+
+    }
+    
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jLabel2 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        SampleDigital = new javax.swing.JLabel();
+        jnome = new javax.swing.JLabel();
+        jRelogio = new javax.swing.JLabel();
+        jHora = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+
+        jLabel2.setText("jLabel2");
+
+        jButton1.setText("jButton1");
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Verify Finger");
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setExtendedState(MAXIMIZED_BOTH);
+        setUndecorated(true);
+        setPreferredSize(new java.awt.Dimension(970, 700));
+
+        SampleDigital.setFocusTraversalPolicyProvider(true);
+
+        jnome.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        jnome.setForeground(new java.awt.Color(255, 255, 255));
+        jnome.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jnome.setText("Posicione sua digital no leitor...");
+        jnome.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+
+        jRelogio.setFont(new java.awt.Font("Arial", 1, 72)); // NOI18N
+        jRelogio.setForeground(new java.awt.Color(255, 255, 255));
+        jRelogio.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jRelogio.setText("00:00:00");
+        jRelogio.setToolTipText("");
+
+        jHora.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        jHora.setForeground(new java.awt.Color(255, 255, 255));
+        jHora.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jHora.setText("00:00");
+
+        jLabel1.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("Relógio de Ponto");
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(297, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jRelogio, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(SampleDigital, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jnome, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jHora, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(298, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(70, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jRelogio)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(SampleDigital, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jnome)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jHora)
+                .addContainerGap(70, Short.MAX_VALUE))
+        );
+
+        getAccessibleContext().setAccessibleDescription("");
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>//GEN-END:initComponents
+
+    public void iniciar() throws IOException{
+
+    	if (capturerDireito != null && capturerDireito.isStarted())
+    	    capturerDireito.stopCapture();
+    	
+    	capturerDireito = DPFPGlobal.getCaptureFactory().createCapture();
+    	capturerDireito.addDataListener(new DPFPDataAdapter() {
+    	    @Override
+    	    public void dataAcquired(final DPFPDataEvent e) {
+    	    	verificar(e.getSample());
+    	    }
+    	});
+    	capturerDireito.startCapture();
+    }
+    
+    public void verificar(DPFPSample sample) {  
+        
+        //SampleDigital.setIcon(null);
+        //JOptionPane.showMessageDialog(null, "Scan your  finger"); 
+        byte[] digitaldireita = null;
+        byte[] digitalesquerda = null;
+        try {     
+            if (sample == null)
+                throw new Exception();
+ 
+            DPFPFeatureExtraction featureExtractor = DPFPGlobal.getFeatureExtractionFactory().createFeatureExtraction();
+            DPFPFeatureSet featureSet = featureExtractor.createFeatureSet(sample, DPFPDataPurpose.DATA_PURPOSE_VERIFICATION);            
+            DPFPVerification matcher = DPFPGlobal.getVerificationFactory().createVerification();
+            matcher.setFARRequested(DPFPVerification.MEDIUM_SECURITY_FAR);
+            ResultSet rs = listarColaboradores();
+
+            while(rs.next()) {
+                int id = rs.getInt("id");
+            	String nome = rs.getString("nome");
+            	digitaldireita = rs.getBytes("digitaldireita");
+                digitalesquerda = rs.getBytes("digitalesquerda");
+                templateDireita = DPFPGlobal.getTemplateFactory().createTemplate();
+                templateEsquerda = DPFPGlobal.getTemplateFactory().createTemplate();
+                templateDireita.deserialize(digitaldireita);
+                templateEsquerda.deserialize(digitalesquerda);
+
+                if (templateDireita != null && templateEsquerda != null) {
+                    DPFPVerificationResult resultDireita = matcher.verify(featureSet, templateDireita);
+                    DPFPVerificationResult resultEsquerda = matcher.verify(featureSet, templateEsquerda);
+                    if (resultDireita.isVerified() || resultEsquerda.isVerified())
+                    {
+                        st.close();
+                        String resultado = pontoDao.marcarPonto(id);
+                        if(resultado=="OK")
+                        {
+                            drawPicture(convertSampleToBitmap(sample));
+                            escreverRegistro(nome);
+                        }else
+                        {
+                            statusDigitalNaoEncontrada();
+                            jnome.setText(resultado); 
+                        }
+                        iniciarTimerVoltarStatusAguardando(1000 * Integer.parseInt(ini.getValor("iniciar_voltar_aguardando_sucesso")));
+                        return;
+                    } else if (!(resultDireita.isVerified() || resultEsquerda.isVerified())) {
+                        System.out.printf("Registro não encontrado.");
+                    }  
+                }
+           }
+           st.close();
+           statusDigitalNaoEncontrada();
+           iniciarTimerVoltarStatusAguardando(1000 * Integer.parseInt(ini.getValor("iniciar_voltar_aguardando_erro")));
+        } catch (Exception e) {
+            System.out.printf("Failed to perform verification. "+e.getMessage());
+        }
+    }
+    
+    protected void fecharCaptureDireito() {
+    	capturerDireito.stopCapture();
+    	//setVisible(false);
+    }
+    
+    private void drawPicture(Image image) {
+        SampleDigital.setIcon(new ImageIcon(
+			image.getScaledInstance( SampleDigital.getWidth(),  SampleDigital.getHeight(), Image.SCALE_DEFAULT)));
+    }
+    
+    private void escreverRegistro(String nome){
+        jnome.setText(nome);
+        marcarHora();
+    }
+
+    private Image convertSampleToBitmap(DPFPSample sample) {
+    	return DPFPGlobal.getSampleConversionFactory().createImage(sample);
+    }
+    
+    private ResultSet listarColaboradores() throws ClassNotFoundException, SQLException, IOException {
+        Conexao conexao = new Conexao();
+        Connection con = conexao.getConnection();
+        st = colaboradorDao.listarColaboradoresComDigitaisAtivos();
+        ResultSet rs = st.executeQuery();
+        return rs;
+    }
+    
+    private void statusAguardandoDigital(){
+        ImageIcon icon = new ImageIcon(getClass().getResource("/imagens/digital.png"));
+        icon.setImage(icon.getImage().getScaledInstance(SampleDigital.getWidth(), SampleDigital.getHeight(), 1));
+        SampleDigital.setIcon(icon);
+        jnome.setText("Posicione sua digital no leitor...");
+        jHora.setText("00:00");
+        jHora.setForeground(Color.black);
+    }
+    
+    private void statusDigitalNaoEncontrada(){
+        ImageIcon icon = new ImageIcon(getClass().getResource("/imagens/digital_error.png"));
+        icon.setImage(icon.getImage().getScaledInstance(SampleDigital.getWidth(), SampleDigital.getHeight(), 1));
+        SampleDigital.setIcon(icon);
+        jnome.setText("Registro não encontrado...");
+        jHora.setText("00:00");
+        jHora.setForeground(Color.black);
+    }
+    
+    private void statusDesligandoPc(){
+        ImageIcon icon = new ImageIcon(getClass().getResource("/imagens/off.jpg"));
+        icon.setImage(icon.getImage().getScaledInstance(SampleDigital.getWidth(), SampleDigital.getHeight(), 1));
+        SampleDigital.setIcon(icon);
+        jnome.setText("Registro não encontrado...");
+        jHora.setText("00:00");
+        jHora.setForeground(Color.black);
+    }
+    
+    private void iniciarTimerVoltarStatusAguardando(int sec){
+        try { 
+            Thread.sleep(sec); 
+            statusAguardandoDigital();
+        } catch (InterruptedException ex) {
+            System.out.println ("Erro: Thread.sleep");
+        }
+    }
+        
+    ActionListener ActionListenerRelogio = new ActionListener() {  
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent e) { 
+        //pega com horario de verão brasil.
+        //Calendar data = Calendar.getInstance(TimeZone.getTimeZone("Brazil/East"));
+        //pega horario da SO.
+        Calendar data = Calendar.getInstance(TimeZone.getDefault());
+        String hora = Utilidade.addZerosEsquerda(2, Integer.toString(data.get(Calendar.HOUR_OF_DAY)));
+        String min = Utilidade.addZerosEsquerda(2, Integer.toString(data.get(Calendar.MINUTE)));
+        String seg = Utilidade.addZerosEsquerda(2, Integer.toString(data.get(Calendar.SECOND)));        
+        jRelogio.setText(hora+":"+min+":"+seg);
+    }};
+    
+    private void relogio(){
+        timer = new Timer(1000, ActionListenerRelogio);  
+        timer.start();
+    }
+    
+    private void marcarHora(){
+        Calendar data = Calendar.getInstance(TimeZone.getDefault());
+        String hora = Utilidade.addZerosEsquerda(2, Integer.toString(data.get(Calendar.HOUR_OF_DAY)));
+        String min = Utilidade.addZerosEsquerda(2, Integer.toString(data.get(Calendar.MINUTE)));
+        jHora.setText(hora+":"+min);
+        jHora.setForeground(Color.white);
+    }
+    
+    private void sair(){
+        System.exit(0);
+    }
+    
+    private void desligarSo() throws IOException{
+        Runtime.getRuntime().exec("shutdown -s");   
+    }
+    
+    private void ocultarPonteiroMouse(){        
+        Image cursorImage = Toolkit.getDefaultToolkit().getImage("xparent.gif");
+        Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point( 0, 0), "" );
+        setCursor( blankCursor );
+    }
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel SampleDigital;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jHora;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jRelogio;
+    private javax.swing.JLabel jnome;
+    // End of variables declaration//GEN-END:variables
+    
+    private DPFPCapture capturerDireito;
+    private DPFPTemplate templateEsquerda;
+    private DPFPTemplate templateDireita;
+    private PreparedStatement st;
+    private Timer timer;
+    private ColaboradorDao colaboradorDao = new ColaboradorDao();
+    private PontoDao pontoDao = new PontoDao();
+    private Ini ini = new Ini();
+   
+}
